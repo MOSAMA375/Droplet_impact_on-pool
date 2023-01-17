@@ -5,9 +5,16 @@
 #include "navier-stokes/conserving.h"
 #include "tension.h"
 #include "tracer.h"
-// #include "view.h"
+#define BVIEW 1
+#include "particles.h"
+#include "view.h"
+#include "scatter.h"
 
-#define pool -((0.68*L0) - x)
+
+// h value=0.98 for half pool, h=0.99 for quater pool, h=0.96 for full pool    ((((-0.5+0.2*D))))
+//DEPTH OF POOL = 0.04 for full, 0.02 for half, 0.01 for quater
+
+#define h 0.96
 #define Re 1000.
 #define We 292.
 #define rholiq 1.0
@@ -18,18 +25,19 @@
 // #define xc (h+epsilon+D*0.5) 
 // #define yc 0.
 // #define epsilon (4./pow(2.,level))
+// #define h (-0.5+0.2*D)
 #define D 0.2
 #define R (D/2.)
-#define h (0.2*D)
-// #define h (-0.5+0.2*D)
+#define pool -((h*L0) - x)
 #define U  1.
+#define x_h 0.359
 #define Max_Level 12.
 
 scalar mydrop[], *tracers = {mydrop};
 
 double geometry(double x, double y)
 {
-    double circle = sq(R)-sq(x-(L0)/2.)-sq(y);
+    double circle = sq(R)-sq(x-((L0)/2.+ x_h))-sq(y);
     return circle;
 } 
 u.n[right]   = dirichlet(0.);
@@ -55,23 +63,34 @@ int main(){
 
 event init(i=0){
     if (!restore (file = "restart")) {
-    refine(  sq(x-(L0)/2.)+sq(y)>sq(0.8*R)  && sq(x-(L0)/2.)+sq(y)<sq(1.1*R) && level< Max_Level);
-    refine(x>=(0.65*L0) &&  x<=(0.73*L0) && level< Max_Level);
-    fraction(f , x< (0.68*L0) ? geometry(x,y) : pool);
+    refine(  sq(x-((L0)/2.+ x_h))+sq(y)>sq(0.8*R)  && sq(x-((L0)/2.+x_h))+sq(y)<sq(1.001*R) && level< Max_Level);
+    refine(x>=((h-0.0005)*L0) &&  x<=((h+0.0005)*L0) && level< Max_Level);
+    fraction(f , x< (h*L0) ? geometry(x,y) : pool);
  
   foreach() {
   		mydrop[] = 0.0;
-  	if (sq(R)-sq(x-(L0)/2.)-sq(y) >= 0.)
+  	if (sq(R)-sq(x-((L0)/2.+x_h))-sq(y) >= 0.)
 		{
 			mydrop[] = 1.0;
 			u.x[] = f[]*U;
 		}
-		else if (x >= (0.68*L0))
+		else if (x >= (h*L0))
 			u.x[] = 0.;
 		
   		
     // u.x[]= x <L0/4. ? -f[]*U : 0. ;
 	}
+  foreach() 
+    if (f[] >= 0.5 && u.x[] !=0 && sq(x-((L0)/2.+ x_h))+sq(y)>sq(0.95*R) && x>((L0)/2.+ x_h) && x<((L0)/2.+ x_h+0.05) )  
+      n_part++;
+  loc = (coord*) malloc (sizeof(coord)*n_part);
+  n_part = 0;
+  foreach()
+    if (f[] >= 0.5 && u.x[] !=0 && sq(x-((L0)/2.+ x_h))+sq(y)>sq(0.95*R) && x>((L0)/2.+ x_h) && x<((L0)/2.+ x_h+0.05)  ) {
+      coord new = {x, y, z};
+      loc[n_part++] = new;
+       }	
+
     }
 }
 
@@ -86,27 +105,29 @@ event logfile (i++) {
 	   grid->tn, perf.t, perf.speed);
 }
 
-/*
+
+
+
 event movie (t += 1e-3)
 {
 view (quat = {0.000, 0.000, 0.000, 1.000},
-      fov = 22, 
-      tx = -0.55 , ty =-0.2, //.862, ty = //0.103, 
+      fov = 8, 
+      tx = -0.862, ty = -0.03, 
       width = 1146, height = 840);
-squares (color = "u.x", min = -1, max = 1, spread = -1, linear = true);
+      scatter (loc);
+      squares (color = "u.x", min = -1, max = 1, spread = -1, linear = true);
 draw_vof (c = "f");
 vectors ();
-
-  scalar omega[];
+/*  scalar omega[];
   vorticity (u, omega);
   view (tx = -0.5);
   clear();
   draw_vof ("f");
   squares ("omega", linear = true, spread = 10);
-  box ();
+  box (); */
   save ("movie1.mp4");
 }
-*/
+
 
 event snapshot (t = 0.1; t += 0.1; t <= 10) {
   char name[80];
@@ -142,7 +163,3 @@ double uemax = 0.1*normf(u.x).avg;
   adapt_wavelet ({f1,u,kappa}, (double[]){1e-4,uemax,uemax,1e-2}, minlevel = 5, maxlevel = Max_Level);
 
 }
-
-
-
-
