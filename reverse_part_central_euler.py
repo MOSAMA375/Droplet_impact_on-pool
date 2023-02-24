@@ -7,12 +7,14 @@ import csv
 s=63
 istep = '{istep = 1}'
 filename = f'sample_data_{s}'
+
 # collect names
 num = 63
 num1=num
 end = 1
 two= float(2)
 dt = 0.001
+base=float(-0.499990)
 
 Test = f'test_{s}'
 # initialize rows
@@ -44,80 +46,75 @@ def collect_output(f_out_data: str, f_out_counter: int, f_num: int):
 
 check_folder(Test)
 
+datapoints=f'test_{s}/datapoints{s}'
 
-# reading csv file
 with open(filename, 'r') as csvfile:
     csvreader = csv.reader(csvfile, delimiter=" ")
+    with open(datapoints, 'a') as datainput: 
+        for row in csvreader:
+            x=row[0]
+            y=row[1]
+            z=row[2]
+            datainput.write(f'{x} {y} {z} \n')
 
-    converted_num = str(num)
-    out_data = f'test_{s}/out_data{converted_num}' 
-    out_counter = 1
-    out_folder = f'test_{s}/t{num}'
-    check_folder(out_folder)
+for file_num in range(num, num-1, -1):
+    out_data=f'test_{s}/out_data{file_num}'
+    datapoint=f'test_{s}/datapoints{file_num}'
+    converted_num=str(file_num)
+    os.system(f"gerris2D -e 'GfsOutputLocation {istep} {out_data} {datapoint}' snapshot-0.{converted_num.zfill(3)}.gfs >/dev/null")
+    with open(out_data, 'r') as fin:
+        data = fin.read().splitlines(True)
+    with open(out_data, 'w') as fout:
+        fout.writelines(data[1:])
+    
 
-    for row in csvreader:
-        gerris_2D(out_folder, out_counter, f'{row[0]} {row[1]} {row[2]}', num)
-        out_counter = out_counter + 1
-
-    # collect temp otput in a single file
-    collect_output(out_data, out_counter, num)
-        
 for file_num in range(num, num-1, -1):
     read_data = f'test_{s}/out_data{file_num}'
-    converted_num = str(file_num)
+    converted_num = str(file_num-1)
+    fnew_datapoint=f'test_{s}/datapoints{file_num-1}'
+    next_out_data = f'test_{s}/out_data{file_num - 1}'
 
-    with open(read_data, 'r') as csv_out:
-        out_counter = 1
-        out_folder = f'test_{s}/t{file_num - 1}'
-        check_folder(out_folder)
+    with open(fnew_datapoint, 'a') as fdatainputs:
+        with open(read_data, 'r') as csv_out:
+            out_reader = csv.reader(csv_out, delimiter=" ")
+            for r in out_reader:
+                x = float(r[1]) - float(r[8]) * dt
+                y = float(r[2]) - float(r[9]) * dt
+                fdatainputs.write(f'{x} {y} {0} \n')
+    os.system(f"gerris2D -e 'GfsOutputLocation {istep} {next_out_data} {fnew_datapoint}' snapshot-0.{converted_num.zfill(3)}.gfs >/dev/null")
+    with open(next_out_data, 'r') as fin:
+        data = fin.read().splitlines(True)
+    with open(next_out_data, 'w') as fout:
+        fout.writelines(data[1:])
 
-        next_out_data = f'test_{s}/out_data{file_num - 1}'
-
-        out_reader = csv.reader(csv_out, delimiter=" ")
-
-        for r in out_reader:
-            x = float(r[1]) - float(r[8]) * dt
-            y = float(r[2]) - float(r[9]) * dt
-            gerris_2D(out_folder, out_counter, f'{x} {y} 0', file_num - 1)
-            out_counter = out_counter + 1
-
-        collect_output(next_out_data, out_counter, file_num - 1)
 
 for file_num in range(num1, end, -1):
     read_data = f'test_{s}/out_data{file_num}'
     read_data1= f'test_{s}/out_data{file_num-1}'
-    converted_num = str(file_num)
+    converted_num = str(file_num-2)
+    new_datapoint=f'test_{s}/datapoints{file_num-2}'
+    next_out_data = f'test_{s}/out_data{file_num - 2}'
 
-    with open(read_data, 'r') as csv_out:
-        out_counter = 1
-        out_folder = f'test_{s}/t{file_num - 2}'
-        check_folder(out_folder)
-        next_out_data = f'test_{s}/out_data{file_num - 2}'
-        out_reader = csv.reader(csv_out, delimiter=" ")
-        with open(read_data1, 'r') as csv_out1:  
-            out_reader1 = csv.reader(csv_out1, delimiter=" ")
-            for r in out_reader:
-                l=next(out_reader1)
-                x0=r[1]
-                y0=r[2]
-                ux=l[8]
-                uy=l[9]
-                x = float(x0) - float(ux)*two*dt
-                y = float(y0) - float(uy)*two*dt
-                print(f'{x} {y}') 
-                gerris_2D(out_folder, out_counter, f'{x} {y} 0', file_num - 2)
-                out_counter = out_counter + 1
-            collect_output(next_out_data, out_counter, file_num - 2)
+    with open(new_datapoint, 'a') as datainputs:
+        with open(read_data, 'r') as csv_out: 
+            out_reader = csv.reader(csv_out, delimiter=" ")
+            with open(read_data1, 'r') as csv_out1:  
+                out_reader1 = csv.reader(csv_out1, delimiter=" ")
+                for r in out_reader:
+                    l=next(out_reader1)
+                    x0=r[1]
+                    y0=r[2]
+                    ux=l[8]
+                    uy=l[9]
+                    x = float(x0) - float(ux)*two*dt
+                    y = float(y0) - float(uy)*two*dt
+                    if y<=base:
+                        datainputs.write(f'{x} {-0.5} {0} \n')
+                    else:
+                         datainputs.write(f'{x} {y} {0} \n')              
+    os.system(f"gerris2D -e 'GfsOutputLocation {istep} {next_out_data} {new_datapoint}' snapshot-0.{converted_num.zfill(3)}.gfs >/dev/null")
+    with open(next_out_data, 'r') as fin:
+        data = fin.read().splitlines(True)
+    with open(next_out_data, 'w') as fout:
+        fout.writelines(data[1:])
 
-file = 'output'
-if(os.path.exists(file)):
-    os.remove(file)
-
-for n in range(num, end - 1, -1):
-    with open(file, 'a') as output:
-        with open(f'test_{s}/out_data{n}', 'r') as read:
-            for line in read:
-                output.write(line)
-
-for n in range(num, end - 1, -1):
-    os.system( f'rm -r test_{s}/t{n}')
