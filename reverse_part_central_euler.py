@@ -15,6 +15,7 @@ end = 1
 two= float(2)
 dt = 0.001
 base=float(-0.499990)
+zero=float(0)
 
 Test = f'test_{s}'
 # initialize rows
@@ -102,19 +103,26 @@ for file_num in range(num1, end, -1):
                 out_reader1 = csv.reader(csv_out1, delimiter=" ")
                 for r in out_reader:
                     l=next(out_reader1)
-                    x0=r[1]
-                    y0=r[2]
-                    ux=l[8]
-                    uy=l[9]
-                    x = float(x0) - float(ux)*two*dt
-                    y = float(y0) - float(uy)*two*dt
-                    if y<=base:
-                        datainputs.write(f'{x} {-0.5} {0} \n')
-                    else:
-                         datainputs.write(f'{x} {y} {0} \n')              
+                    f=float(l[13])
+                    if f>zero:
+                        x0=r[1]
+                        y0=r[2]
+                        ux=l[8]
+                        uy=l[9]
+                        x = float(x0) - float(ux)*two*dt
+                        y = float(y0) - float(uy)*two*dt
+                        if y<=base:
+                            datainputs.write(f'{x} {-0.5} {0} \n')
+                        else:
+                             datainputs.write(f'{x} {y} {0} \n')  
+                    else:          
+                        datainputs.write(f'{0} {0} {0} \n')  
     os.system(f"gerris2D -e 'GfsOutputLocation {istep} {next_out_data} {new_datapoint}' snapshot-0.{converted_num.zfill(3)}.gfs >/dev/null")
     with open(next_out_data, 'r') as fin:
         data = fin.read().splitlines(True)
     with open(next_out_data, 'w') as fout:
         fout.writelines(data[1:])
+
+
+
 
