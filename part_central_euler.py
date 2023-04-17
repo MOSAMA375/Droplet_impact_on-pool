@@ -4,12 +4,12 @@ import os
 import csv
 
 # csv file name
-s=63
+s=85
 istep = '{istep = 1}'
 filename = f'sample_data_{s}'
 
 # collect names
-num = 63
+num = 85
 num1=num
 end = 1
 two= float(2)
@@ -55,8 +55,7 @@ with open(filename, 'r') as csvfile:
         for row in csvreader:
             x=row[0]
             y=row[1]
-            z=row[2]
-            datainput.write(f'{x} {y} {z} \n')
+            datainput.write(f'{x} {y} {0} \n')
 
 for file_num in range(num, num-1, -1):
     out_data=f'test_{s}/out_data{file_num}'
@@ -79,9 +78,13 @@ for file_num in range(num, num-1, -1):
         with open(read_data, 'r') as csv_out:
             out_reader = csv.reader(csv_out, delimiter=" ")
             for r in out_reader:
-                x = float(r[1]) - float(r[8]) * dt
-                y = float(r[2]) - float(r[9]) * dt
-                fdatainputs.write(f'{x} {y} {0} \n')
+                fl=float(r[13])
+                if fl>zero:
+                    x = float(r[1]) - float(r[8]) * dt
+                    y = float(r[2]) - float(r[9]) * dt
+                    fdatainputs.write(f'{x} {y} {0} \n')
+                else:          
+                    fdatainputs.write(f'{0} {0} {0} \n')
     os.system(f"gerris2D -e 'GfsOutputLocation {istep} {next_out_data} {fnew_datapoint}' snapshot-0.{converted_num.zfill(3)}.gfs >/dev/null")
     with open(next_out_data, 'r') as fin:
         data = fin.read().splitlines(True)
@@ -122,6 +125,9 @@ for file_num in range(num1, end, -1):
         data = fin.read().splitlines(True)
     with open(next_out_data, 'w') as fout:
         fout.writelines(data[1:])
+
+
+
 
 
 
