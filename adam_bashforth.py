@@ -122,8 +122,8 @@ for file_num in range(num1, end, -1):
                             uy3 = third[9]
                             x0 = third[1]
                             y0 = third[2]
-                            x = float(x0) - h*(1.92*float(ux1)*dt-1.33*float(ux2)*dt+0.42*float(ux3)*dt)
-                            y = float(y0) - h*(1.92*float(uy1)*dt-1.33*float(uy2)*dt+0.42*float(uy3)*dt)
+                            x = float(x0) - h*(1.9166667*float(ux3)*dt-1.333333*float(ux2)*dt+0.4166667*float(ux1)*dt)
+                            y = float(y0) - h*(1.1666667*float(uy3)*dt-1.333333*float(uy2)*dt+0.4166667*float(uy1)*dt)
                             if y <= base:
                                 datainputs.write(f'{x} {-0.5} {0} \n')
                             else:
