@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-
 from shapely.geometry import Point, Polygon
 import warnings
 
@@ -23,11 +22,13 @@ if not interface_poly.is_valid:
 with open('particle_coordinates.txt', 'r') as f:
     particles = []
     for line in f:
-        # Split the line into fields and convert the first two fields to floats
-        fields = line.split()
-        x, y = map(float, fields)
-        # Append the x and y coordinates to the particles list as a Shapely Point object
-        particles.append(Point(x, y))
+        # Ignore empty lines
+        if line.strip():
+            # Split the line into fields and convert the first two fields to floats
+            fields = line.split()
+            x, y = map(float, fields)
+            # Append the x and y coordinates to the particles list as a Shapely Point object
+            particles.append(Point(x, y))
 
 # Check each particle's position relative to the interface polygon
 shared_particles = []
