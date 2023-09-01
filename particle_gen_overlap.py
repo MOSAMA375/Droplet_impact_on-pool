@@ -9,7 +9,7 @@ for i in range(1):
         for k in range(10):
             for l in range(10):
                 t = f"{i}.{j}{k}{l}"
-                name = int(f"{j}{k}{l}")  # Convert to integer
+                name = int(f"{int(j)}{int(k)}{int(l)}")  # Convert to integer
                 n1 = j
                 n2 = k
                 n3 = l
