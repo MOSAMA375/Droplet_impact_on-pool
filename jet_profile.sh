@@ -29,7 +29,7 @@ for ((i = 0; i <= 9; i++)); do
           X_req=$(awk 'NR==1 {print; exit}' "$tmp/out4")
           line_num1=$(awk -v x_req="$X_req" -v y_min="$Y_min" '$1 == x_req && $2 == y_min {print NR; exit}' "$FILE")
 
-          if python -c "import sys; sys.exit(1 if float('$Y_min') <= float('$poolh') else 0)"; then
+          if [ "$(echo "$Y_min >= $poolh" | bc -l)" -eq 1 ]; then            
             dangle=0.1
             tmp="tmp_folder"  # Replace with the actual temporary folder path
 
