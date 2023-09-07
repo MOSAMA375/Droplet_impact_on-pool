@@ -1,7 +1,8 @@
 #!/bin/bash
 tmp=$(mktemp -d)
 
-poolh=-0.46
+poolh=-0.48
+maxy=-0.488
 
 for ((i = 0; i <= 9; i++)); do
   for ((j = 0; j <= 9; j++)); do
@@ -16,7 +17,7 @@ for ((i = 0; i <= 9; i++)); do
     
         FILE=j-${i}.${j}${k}${l}.gnu
         if [ -f "$FILE" ]; then
-          awk '$1 >= -0.43 && $2 >= -0.442  {print $1, $2}' "$FILE" >"$tmp/out"
+          awk -v maxy="$maxy" '$1 >= -0.43 && $2 >= maxy  {print $1, $2}' "$FILE" >"$tmp/out"
           X_max=$(awk 'BEGIN {max = -100} {if ($1 > max) {max = $1}; } END {print max}' "$tmp/out")
           awk -v x_max="$X_max" '$1 == x_max {print $2}' "$tmp/out" >"$tmp/out2"
           Y_req=$(awk 'NR==1 {print; exit}' "$tmp/out2")
