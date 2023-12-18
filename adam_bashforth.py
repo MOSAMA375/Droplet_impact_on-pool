@@ -4,16 +4,16 @@ import os
 import csv
 
 # csv file name
-s=63
+s=1800
 istep = '{istep = 1}'
 filename = f'sample_data_{s}'
 
 # collect names
-num = 63
+num = 1800
 num1=num
-end = 1
+end = 2
 two= float(2)
-dt = 0.001
+dt = 0.0001
 base=float(-0.499990)
 zero=float(0)
 h=float(1)
@@ -34,7 +34,7 @@ def gerris_2D(f_out_folder: str, f_out_counter: int, data_points: str, f_num: in
     # print(row, "0." + converted_num.zfill(3))
     # SEND input to geris
     os.system(
-        f"gerris2D -e 'OutputLocation {istep} {temp_out} {data_points} ' snapshot-0.{converted_num.zfill(3)}.gfs > /dev/null")
+        f"gerris2D -e 'OutputLocation {istep} {temp_out} {data_points} ' snapshot-0.{converted_num.zfill(4)}.gfs > /dev/null")
 
 def collect_output(f_out_data: str, f_out_counter: int, f_num: int):
     if(os.path.exists(f_out_data)):
@@ -62,7 +62,7 @@ for file_num in range(num, num-1, -1):
     out_data=f'test_{s}/out_data{file_num}'
     datapoint=f'test_{s}/datapoints{file_num}'
     converted_num=str(file_num)
-    os.system(f"gerris2D -e 'GfsOutputLocation {istep} {out_data} {datapoint}' snapshot-0.{converted_num.zfill(3)}.gfs >/dev/null")
+    os.system(f"gerris2D -e 'GfsOutputLocation {istep} {out_data} {datapoint}' snapshot-0.{converted_num.zfill(4)}.gfs >/dev/null")
     with open(out_data, 'r') as fin:
         data = fin.read().splitlines(True)
     with open(out_data, 'w') as fout:
@@ -86,7 +86,7 @@ for file_num in range(num, num-2, -1):
                     fdatainputs.write(f'{x} {y} {0} \n')
                 else:          
                     fdatainputs.write(f'{0} {0} {0} \n')
-    os.system(f"gerris2D -e 'GfsOutputLocation {istep} {next_out_data} {fnew_datapoint}' snapshot-0.{converted_num.zfill(3)}.gfs >/dev/null")
+    os.system(f"gerris2D -e 'GfsOutputLocation {istep} {next_out_data} {fnew_datapoint}' snapshot-0.{converted_num.zfill(4)}.gfs >/dev/null")
     with open(next_out_data, 'r') as fin:
         data = fin.read().splitlines(True)
     with open(next_out_data, 'w') as fout:
@@ -122,20 +122,16 @@ for file_num in range(num1, end, -1):
                             uy3 = third[9]
                             x0 = third[1]
                             y0 = third[2]
-                            x = float(x0) - h*(1.9166667*float(ux3)*dt-1.333333*float(ux2)*dt+0.4166667*float(ux1)*dt)
-                            y = float(y0) - h*(1.1666667*float(uy3)*dt-1.333333*float(uy2)*dt+0.4166667*float(uy1)*dt)
+                            x = float(x0) - h*((23*float(ux3)*dt)/12-(16*float(ux2)*dt)/12+(5*float(ux1)*dt)/12)
+                            y = float(y0) - h*((23*float(uy3)*dt)/12-(16*float(uy2)*dt)/12+(5*float(uy1)*dt)/12)
                             if y <= base:
                                 datainputs.write(f'{x} {-0.5} {0} \n')
                             else:
                                 datainputs.write(f'{x} {y} {0} \n')
                         else:
                             datainputs.write(f'{0} {0} {0} \n')
-    os.system(f"gerris2D -e 'GfsOutputLocation {istep} {next_out_data} {new_datapoint}' snapshot-0.{converted_num.zfill(3)}.gfs >/dev/null")
+    os.system(f"gerris2D -e 'GfsOutputLocation {istep} {next_out_data} {new_datapoint}' snapshot-0.{converted_num.zfill(4)}.gfs >/dev/null")
     with open(next_out_data, 'r') as fin:
         data = fin.read().splitlines(True)
     with open(next_out_data, 'w') as fout:
         fout.writelines(data[1:])
-
-
-
-
