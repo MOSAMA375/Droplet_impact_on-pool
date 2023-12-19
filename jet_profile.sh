@@ -1,23 +1,24 @@
 #!/bin/bash
 tmp=$(mktemp -d)
 
-poolh=-0.48
-maxy=-0.488
+poolh=-0.46
 
 for ((i = 0; i <= 9; i++)); do
   for ((j = 0; j <= 9; j++)); do
     for ((k = 0; k <= 9; k++)); do
       for ((l = 0; l <= 9; l++)); do
-        t=${i}.${j}${k}${l}
-        
-        FILE1=i-${i}.${j}${k}${l}.gnu
+        for ((m = 0; m <= 9; m++)); do
+         t=${i}.${j}${k}${l}${m}
+          
+         FILE1=i-${i}.${j}${k}${l}${m}.gnu
+
         if [ -f "$FILE1" ]; then
           awk '$1 >= -0.43 {print $1, $2 > "j-'"$t"'.gnu";}' "i-$t.gnu"
         fi
     
-        FILE=j-${i}.${j}${k}${l}.gnu
+        FILE=j-${i}.${j}${k}${l}${m}.gnu
         if [ -f "$FILE" ]; then
-          awk -v maxy="$maxy" '$1 >= -0.43 && $2 >= maxy  {print $1, $2}' "$FILE" >"$tmp/out"
+          awk '$1 >= -0.43 && $2 >= -0.442  {print $1, $2}' "$FILE" >"$tmp/out"
           X_max=$(awk 'BEGIN {max = -100} {if ($1 > max) {max = $1}; } END {print max}' "$tmp/out")
           awk -v x_max="$X_max" '$1 == x_max {print $2}' "$tmp/out" >"$tmp/out2"
           Y_req=$(awk 'NR==1 {print; exit}' "$tmp/out2")
@@ -30,7 +31,7 @@ for ((i = 0; i <= 9; i++)); do
           X_req=$(awk 'NR==1 {print; exit}' "$tmp/out4")
           line_num1=$(awk -v x_req="$X_req" -v y_min="$Y_min" '$1 == x_req && $2 == y_min {print NR; exit}' "$FILE")
 
-          if [ "$(echo "$Y_min >= $poolh" | bc -l)" -eq 1 ]; then            
+          if python -c "import sys; sys.exit(1 if float('$Y_min') <= float('$poolh') else 0)"; then
             dangle=0.1
             tmp="tmp_folder"  # Replace with the actual temporary folder path
 
@@ -118,16 +119,6 @@ for ((i = 0; i <= 9; i++)); do
       done
     done
   done
+ done
 done
-
-
-
-
-
-
-
-   
-    
-
-
 
